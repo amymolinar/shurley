@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shurley English UFLI Sentences</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Century+Gothic&display=swap');
+
+  body {
+    font-family: 'Century Gothic', sans-serif;
+    background-color: #f9fff9;
+    margin: 0;
+    padding: 20px;
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 30px;
+    margin-bottom: 5px;
+  }
+
+  .name-line {
+    text-align: left;
+    font-size: 20px;
+    margin: 10px auto 30px;
+    width: 85%;
+  }
+
+  select, button {
+    font-size: 18px;
+    margin: 10px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background-color: #e0f3e0;
+    cursor: pointer;
+    font-family: 'Century Gothic', sans-serif;
+  }
+
+  #sentences {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+    margin-top: 20px;
+  }
+
+  .sentence-box {
+    width: 85%;
+    background-color: white;
+    border: 2px solid #333;
+    border-radius: 12px;
+    padding: 20px;
+    font-size: 60px; /* App display font size */
+    text-align: left;
+    box-shadow: 2px 3px 6px rgba(0,0,0,0.1);
+    page-break-inside: avoid;
+    position: relative;
+  }
+
+  .writing-space {
+    height: 60px;
+    border-top: 1px dashed #aaa;
+    margin-top: 15px;
+  }
+
+  .regenerate-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 16px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #333;
+    background-color: #d0f0d0;
+    cursor: pointer;
+  }
+
+  @media print {
+    button, select, label, .regenerate-btn {
+      display: none;
+    }
+    body {
+      background-color: white;
+    }
+    .sentence-box {
+      font-size: 20px; /* Worksheet font size */
+      box-shadow: none;
+      border: 2px solid black;
+    }
+  }
+</style>
+</head>
+<body>
+  <h1>Shurley English UFLI Sentences</h1>
+  <div class="name-line">Name: _______________________________</div>
+
+  <div>
+    <label for="levelSelect">Select Level:</label>
+    <select id="levelSelect">
+      <option value="1">Level 1 (Lessons 1–34)</option>
+      <option value="2">Level 2 (Lessons 35–53)</option>
+      <option value="3">Level 3 (Lessons 54–62)</option>
+    </select>
+    <button onclick="generateSentences()">Generate Sentences</button>
+    <button onclick="window.print()">Print Worksheet</button>
+  </div>
+
+  <div id="sentences"></div>
+
+<script>
+// Proper names only as subjects
+const properNames = ["Pam","Bob","Meg","Sam","Liz","Ben","Tom","Ann","Leo","Mia","Kai","Eli","Max","Zoe","Ivy","Amy","Jack","Lily","Finn","Eve"];
+const animateNouns = ["cat","dog","hen","pig","duck","fox","king","child","bird","goat","ram","bat","rat","owl","frog","lion","tiger","pony","calf","puppy","kitten","seal","crab","squirrel","turtle"].concat(properNames);
+const inanimateNouns = ["ship","fish","nest","truck","bell","shell","bench","rock","stick","sand","pond","branch","rug","hill","log","moss","can","shed","pan","cup","bun","plank","stump","mat","bucket","box","toy","chair","lamp","book","cupboard","ball","cone"];
+
+const verbsAnimate = ["runs","jumps","skips","hops","lands","sings","claps","rests","sits","flaps","nods","dives","waddles","flies","trots","rolls","slides","dashes","leaps","hurries","bounces","gallops","crawls","dances","swings","twirls","prances","bounds","catches","climbs","chases","carries","crunches"];
+const verbsInanimate = ["rests","sits","hangs","lies","rolls","stands","drops","falls","floats","tips","leans","tilts","rocks","slides","shifts","moves","turns","wobbles","spins","pivots","bounces","sinks","crashes","clangs","clicks","clatters"];
+
+const prepositions = {
+  movement: ["over","by","to","into","around","past","across"],
+  stationary: ["on","under","near","by"]
+};
+const starters = ["The", "A", "That", "One", "This"];
+
+// Assign nouns/verbs to levels
+const wordBanks = {
+  1: {
+    subjects: animateNouns.slice(0,20).concat(properNames.slice(0,4)),
+    verbsAnimate: verbsAnimate.slice(0,11),
+    verbsInanimate: verbsInanimate.slice(0,8),
+    objects: inanimateNouns.slice(0,20)
+  },
+  2: {
+    subjects: animateNouns.slice(10,30).concat(properNames.slice(4,10)),
+    verbsAnimate: verbsAnimate.slice(5,20),
+    verbsInanimate: verbsInanimate.slice(5,14),
+    objects: inanimateNouns.slice(10,30)
+  },
+  3: {
+    subjects: animateNouns.slice(20).concat(properNames.slice(10)),
+    verbsAnimate: verbsAnimate.slice(10),
+    verbsInanimate: verbsInanimate.slice(10),
+    objects: inanimateNouns.slice(20)
+  }
+};
+
+function random(array) { return array[Math.floor(Math.random() * array.length)]; }
+
+function generateSentence(level, usedPreps=new Set()) {
+  const { subjects, verbsAnimate, verbsInanimate, objects } = wordBanks[level];
+  let subject = random(subjects);
+  const isAnim = animateNouns.includes(subject);
+  const verb = isAnim ? random(verbsAnimate) : random(verbsInanimate);
+
+  let object = random(objects);
+  while(object === subject) object = random(objects);
+
+  let prep = "";
+  if(isAnim){
+    if(["runs","jumps","skips","hops","flies","dives","trots","waddles","claps","lands","gallops","dances"].includes(verb)){
+      let possiblePreps = prepositions.movement.filter(p => !usedPreps.has(p));
+      if(possiblePreps.length) prep = random(possiblePreps);
+    } else {
+      let possiblePreps = prepositions.stationary.filter(p => !usedPreps.has(p));
+      if(possiblePreps.length) prep = random(possiblePreps);
+    }
+  } else {
+    let possiblePreps = prepositions.stationary.filter(p => !usedPreps.has(p));
+    if(possiblePreps.length) prep = random(possiblePreps);
+  }
+
+  if(prep) usedPreps.add(prep);
+
+  // Proper names only as subjects
+  const subjectText = properNames.includes(subject) ? subject : random(starters) + " " + subject;
+  const objectText = `the ${object}`;
+
+  let sentence = `${subjectText} ${verb}`;
+  if(prep) sentence += ` ${prep}`;
+  sentence += ` ${objectText}.`;
+
+  return sentence.charAt(0).toUpperCase() + sentence.slice(1);
+}
+
+function createSentenceBox(sentence, level) {
+  const box = document.createElement("div");
+  box.className = "sentence-box";
+  const text = document.createElement("div");
+  text.textContent = sentence;
+  const space = document.createElement("div");
+  space.className = "writing-space";
+  const regenBtn = document.createElement("button");
+  regenBtn.textContent = "Regenerate";
+  regenBtn.className = "regenerate-btn";
+  regenBtn.onclick = () => { text.textContent = generateSentence(level, new Set()); };
+  box.appendChild(text);
+  box.appendChild(space);
+  box.appendChild(regenBtn);
+  return box;
+}
+
+function generateSentences() {
+  const level = document.getElementById("levelSelect").value;
+  const sentencesDiv = document.getElementById("sentences");
+  sentencesDiv.innerHTML = "";
+  const usedPreps = new Set();
+  let sentences = new Set();
+  while(sentences.size < 4) sentences.add(generateSentence(level, usedPreps));
+  Array.from(sentences).forEach(sentence => sentencesDiv.appendChild(createSentenceBox(sentence, level)));
+}
+
+window.onload = generateSentences;
+</script>
+</body>
+</html>
